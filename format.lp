@@ -34,24 +34,28 @@ let process f = function
         let lexbuf = Lexing.from_channel stdin in
             f lexbuf
 
+
+
 let break width lexbuf = 
     let words = Scanner.words lexbuf in
         List.iter print_endline words
 
-let greedy width lexbuf =
-    let words = Scanner.words lexbuf in
+let print width doc =
+    List.iter 
+        (fun s -> Printf.printf "%+3d: %s\n" (String.length s - width) s)
+        @@ List.map (String.concat " ") doc
+
+let greedy width words =
     let len   = String.length in
-    let rec loop w (x::xs) = function
-        | word :: words when len word < w -> 
-            loop (w - len word - 1) ((word::x)::xs) words
-        | word :: words  ->
-            loop (width-len word) ([word]::x::xs) words
-        | [] -> x::xs
+    let rec loop w lines words = match lines, words with
+        | line::lines, word::words when len word < w -> 
+            loop (w - len word - 1) ((word::line)::lines) words
+        | line::lines,word::words  -> 
+            loop (width-len word) ([word] :: List.rev line :: lines) words
+        | lines,[]  -> List.rev lines
+        | [], words -> loop w [[]] words
     in
-        List.iter (fun s -> Printf.printf "%-40s (%d)\n"  s (len s))
-            @@ List.map (fun l -> String.concat " " @@ List.rev l)
-            @@ List.rev 
-            @@ loop width [[]] words
+        loop width [] words
             
 let a2i str =
     try 
@@ -60,10 +64,12 @@ let a2i str =
     with Failure _ -> error "\"%s\" must be positive number" str
                             
 let main argv =
-    let args = List.tl argv in
+    let args  = List.tl argv in
+    let words = Scanner.words in
+    let format width doc = print width @@ greedy width doc in
     match args with
-        | "-w" :: w :: []           -> process (greedy @@ a2i w) None
-        | "-w" :: w :: path :: []   -> process (greedy @@ a2i w) (Some path)
+        | "-w" :: w :: []           -> process (fun lb -> format (a2i w) (words lb)) None
+        | "-w" :: w :: path :: []   -> process (fun lb -> format (a2i w) (words lb)) (Some path)
         | _                         -> error "unknown command line format"
         
 let () = if !Sys.interactive then () else 
