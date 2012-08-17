@@ -21,5 +21,5 @@ frmt.ml: 	format.lp
 scanner.mll: 	format.lp
 		$(LP) tangle -f cpp $@ $< > $@
 
-frmt.md: 	format.lp
+format.md: 	format.lp
 		$(LP) weave $< > $@
