@@ -1,25 +1,35 @@
 #
+# Makefile
 #
+# The source code in format.lp is a literate program. Use 
+# https://github.com/lindig/lipsum.git to extract the 
+# code for compilation.
 #
 
 LP 		= lipsum
 OCB 		= ocamlbuild
 
-SRC 		= frmt.ml scanner.mll
+SRC 		= demo.ml linebreak.ml linebreak.mli scanner.mll
 
 all: 		$(SRC)
-		$(OCB) frmt.native
+		$(OCB) demo.native
 
 clean: 		
 		$(OCB) -clean
 		rm -f $(SRC)
-		rm -f frmt.md
+		rm -f format.md
 
-frmt.ml: 	format.lp
+linebreak.ml: 	format.lp
 		$(LP) tangle -f cpp $@ $< > $@
-		
+
+linebreak.mli: 	format.lp
+		$(LP) tangle -f cpp $@ $< > $@
+
 scanner.mll: 	format.lp
 		$(LP) tangle -f cpp $@ $< > $@
 
+demo.ml:	format.lp
+		$(LP) tangle -f cpp $@ $< > $@
+	    
 format.md: 	format.lp
 		$(LP) weave $< > $@

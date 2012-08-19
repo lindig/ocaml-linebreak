@@ -1,35 +1,113 @@
 
-# A tool to experiment with line-breaking algorithms
+# An implementation of optimal line breaking
 
-<<frmt.ml>>=
-exception Error of string
-let error fmt = Printf.kprintf (fun msg -> raise (Error msg)) fmt
-let eprintf   = Printf.eprintf
-let printf    = Printf.printf
+This project imlements a module for breaking words into lines and 
+a small command-line client using it for experiments and tests. 
 
-let (@@) f x = f x 
+## Overview
 
-@ Each implementation stays in its own sub-module to avoid name 
-clashes.
+We have interface and implementaton of the `Linebreak` module 
+and a command line client. Module `Linebreaking` implements two
+algorithms which stay in seperate sub modules.
 
-<<frmt.ml>>=
+The cost model assumes that words in a line are separated
+by spaces of width one and that each character in a word is
+likewise of width one.
+
+<<linebreak.mli>>=
+type words  = string list 
+type lines  = words list
+
+val spacewidth: int (* 1 *)
+
+module Simple: sig
+    val break: int -> words -> lines    
+end
+
+module Smart: sig
+    val break: int -> words -> lines
+end
+@
+
+<<linebreak.ml>>=
 <<global definitions>>
-module Greedy = struct
-    <<Greedy>>
+module Simple = struct
+    <<Simple>>
 end    
 module Smart = struct
     <<Smart>>
-end    
-<<main>>
+end 
 @
 
-## Global definitions
+### Main
+
+@ The main function resides in module `Demo`. It has no interface since it
+is top-level module that executes `main`.
+
+<<demo.ml>>=
+exception Error of string
+let error fmt   = Printf.kprintf (fun msg -> raise (Error msg)) fmt
+
+let length          = String.length
+let square (x:int)  = x * x
+let (@@) f x        = f x
+let eprintf         = Printf.eprintf
+let printf          = Printf.printf
+let max x y         = if x > y then x else y 
+
+<<Demo>>
+
+let () = if !Sys.interactive then () else 
+    try
+        main (Array.to_list Sys.argv); exit 0
+    with
+    | Error(msg)         -> eprintf "error: %s\n" msg; exit 1
+    | Sys_error(msg)     -> eprintf "error: %s\n" msg; exit 1
+@
+
+### Scanner
+
+The demo client employs a scanner to break a text file into words. This
+might be useful in the long run when we want to categorize words into
+different categories or implement unbreakable spaces.
+
+<<scanner.mll>>=
+{
+    <<prelude>>
+}
+<<rules>>
+
+{
+let words lexbuf = scan [] lexbuf
+let lines lexbuf = lines [] [] lexbuf
+}
+@
+
+## Linebreaking Implementation
+
+<<global definitions>>=
+let (@@) f x    = f x
+
+@ The line breaking algorithms break `words` into lines represented as a 
+list of words.
+
+<<global definitions>>=
+type words  = string list 
+type lines  = words list
+
+let length = String.length
+let spacewidth = 1 (* width of a space *)
+let square (x:int): int = x*x
+@
+
+## Demo Client
 
 @ `finally f x cleanup` function provides resource cleanup in the presence
 of exceptions: `f x` is computed as a result and `cleanup x` is guaranteed
-to run afterwards.
+to run afterwards. (In many cases `cleanup` will not use its argument `x`
+but it can be convenient to access to it.)
 
-<<global definitions>>=
+<<Demo>>=
 type 'a result = Success of 'a | Failed of exn
 let finally f x cleanup = 
     let result =
@@ -40,19 +118,11 @@ let finally f x cleanup =
         | Success y  -> y 
         | Failed exn -> raise exn
 
-@ The line breaking algorithms break `words` into lines represented as a 
-list of words.
-
-<<global definitions>>=
-type words  = string list 
-type lines  = words list
-
 @ `process f path` opens file `path` or `stdin` when no path is provided
 and creates a lexbuf from it, which is passed to `f`. `process` takes care
 of opening and closing the file such that `f` does not need to do it.
 
-
-<<global definitions>>=
+<<Demo>>=
 let process f = function
     | Some path -> 
         let io = open_in path in
@@ -62,16 +132,9 @@ let process f = function
         let lexbuf = Lexing.from_channel stdin in
             f lexbuf
 
-@ Some globally useful functions from other modules.
-
-<<global definitions>>=
-let length = String.length
-let spacewidth = 1 (* width of a space *)
-let square (x:int): int = x*x
-let max x y = if x > y then x else y 
 
 @ `a2i` converts a string of a non-negative integer into an integer value.
-<<global definitions>>=
+<<Demo>>=
 let a2i str =
     try 
         let n = int_of_string str in
@@ -79,8 +142,8 @@ let a2i str =
     with 
         Failure _ -> error "\"%s\" must be positive number" str
 
-<<global definitions>>=
-let badness (width:int) (lines:lines): int =
+<<Demo>>=
+let badness (width:int) (lines:Linebreak.lines): int =
     let sum f = List.fold_left (fun sum x -> sum + f x) 0 in
     let cost words =
         let spaces = max 0 (List.length words - 1) in
@@ -90,17 +153,11 @@ let badness (width:int) (lines:lines): int =
     in
         sum cost lines
 
-<<global definitions>>=
-let print (width:int) (lines:lines): unit =
-     ( List.iter print_endline @@ List.map (String.concat " ") lines
-     ; Printf.printf "cost: %d\n" (badness width lines)
-     )
-
 @ `padright w str` returns string `str` padded with spaces on the right
 such that is has length `w`. It returns `str` as is if it is longer than
 `w` already.
 
-<<global definitions>>=
+<<Demo>>=
 let padright width string =
     let n = String.length string in
     if n < width then
@@ -108,8 +165,15 @@ let padright width string =
     else
         string
 
-<<global definitions>>=
-let print' width (lines:lines): unit =
+<<Demo>>=
+let print (width:int) (lines:Linebreak.lines): unit =
+     ( List.iter  (fun s -> Printf.printf "|%s|\n" (padright width s))
+        @@ List.map (String.concat " ") lines
+     ; Printf.printf "cost: %d\n" (badness width lines)
+     )
+
+<<Demo>>=
+let print' width (lines:Linebreak.lines): unit =
     Printf.printf "%3d|%s|\n" 
         (badness width lines) 
             (String.concat "|" 
@@ -117,8 +181,43 @@ let print' width (lines:lines): unit =
             @@ List.map (String.concat " ") lines)
 @
 
+The `main` function parses the command line. Exceptions are caught and
+reported one level up.
 
-## Optimal Line Breaking
+<<Demo>>=
+let simple width words = print width @@ Linebreak.Simple.break width words 
+let smart  width words = print width @@ Linebreak.Smart.break width words
+
+let both width lines =
+    List.iter (fun l -> 
+        ( print' width @@ Linebreak.Smart.break width l) 
+        ; print' width @@ Linebreak.Simple.break width l
+        ; Printf.printf "---+\n"
+        ) lines
+
+let main argv =
+    match List.tl argv with (* List.hd is program name *)
+    | "-g" :: w :: [] -> 
+        process (fun lb -> simple (a2i w) (Scanner.words lb)) None
+    | "-g" :: w :: path :: []-> 
+        process (fun lb -> simple (a2i w) (Scanner.words lb)) (Some path)
+    | "-s" :: w :: [] -> 
+        process (fun lb -> smart (a2i w) (Scanner.words lb)) None
+    | "-s" :: w :: path :: []-> 
+        process (fun lb -> smart (a2i w) (Scanner.words lb)) (Some path)
+    | "-x" :: w :: path :: []-> 
+        process (fun lb -> both (a2i w) (Scanner.lines lb)) (Some path)
+    | _ -> 
+        let this = List.hd argv in
+        List.iter prerr_endline
+        [ "Unknown command line format. Try:"
+        ; this ^ " -g width file.txt        simple line breaking"
+        ; this ^ " -s width file.txt        smart line breaking"
+        ; this ^ " -x width file.txt        compare simple and smart"
+        ]
+@
+
+## Smart Line Breaking
 
 Optimal line breaking takes a list of words and breaks it into lines by
 minimizing the amount of unused space at the end of each line. The solution
@@ -129,7 +228,7 @@ resulting paragraph.  Squaring the unused spaces penalizes lines with many
 unused spaces more than those with fewer and leads to a distribution of the
 unused space across all lines.
 
-The line breaking algorithm maintains a for each possible break point
+The line breaking algorithm maintains for each possible break point
 (between two adjacent lines) three information:
 
 1. The word before the break point.
@@ -210,18 +309,6 @@ let add_word (word:string) (linewidth:int) (par:par): break =
     let cost    = square avail + minimum par in
         add' word avail 0 cost 0 par 
 
-@ `break` takes a list of words and adds them one by one to create
-a paragraph of type `par`.
-
-<<Smart>>=
-let break (linewidth:int) (words:words): par = 
-    let rec loop paragraph = function
-    | []            -> paragraph
-    | word :: words -> 
-        loop (add_word word linewidth paragraph :: paragraph) words
-    in
-        loop [] words
-
 @ `doc` converts a paragraph value into a `lines` value. It walks through
 the paragraph and collects words into lines starting from the last word in 
 the paragraph. Since this includes the number of words that belong to the
@@ -238,9 +325,26 @@ let doc (par:par): lines =
     | (w,c,n)::p -> loop n p [w] []
 @   
 
-## Greedy line breaking
 
-`greedy` implements a simple line breaking algorithm that takes a list of
+@ `break'` takes a list of words and adds them one by one to create
+a paragraph of type `par`.
+
+<<Smart>>=
+let break' (linewidth:int) (words:words): par = 
+    let rec loop paragraph = function
+    | []            -> paragraph
+    | word :: words -> 
+        loop (add_word word linewidth paragraph :: paragraph) words
+    in
+        loop [] words
+
+<<Smart>>=
+let break linewidth words = doc @@ break' linewidth words
+@
+
+## Simple line breaking
+
+`break` implements a simple line breaking algorithm that takes a list of
 words and breaks it into lines (each represented as a list words) no longer
 than `width` characters. The algorithm fills a line with words until the
 next word no longer fits into the given `width`. A word longer than `width`
@@ -250,8 +354,8 @@ After a word is added to a line, the remaining space equals the available
 space `w` minus the length of the word that was added and minus one space
 since the next word (if any) would need that space as a separator.
 
-<<Greedy>>=
-let greedy (width:int) (words:words): lines =
+<<Simple>>=
+let break (width:int) (words:words): lines =
     let len   = String.length in
     let rev   = List.rev in
     let rec loop w lines words = match lines, words with
@@ -266,68 +370,8 @@ let greedy (width:int) (words:words): lines =
         loop width [] words
 @
 
-## Main function
-
-The `main` function parses the command line. Exceptions are caught and
-reported one level up.
-
-<<main>>=
-
-let ss width lines =
-    List.iter (fun l -> 
-        ( print' width @@ Smart.doc @@ Smart.break width l) 
-        ; print' width @@ Greedy.greedy width l
-        ; Printf.printf "---+\n"
-        ) lines
-
-let main argv =
-    let args  = List.tl argv in
-    let words = Scanner.words in
-    let lines = Scanner.lines in
-    let greedy width doc = print width @@ Greedy.greedy width doc in
-    let smart width doc  = print width @@ Smart.doc 
-                                       @@ Smart.break width doc in
-    let dump width doc = Smart.dump @@ Smart.break width doc in
-    match args with
-    | "-g" :: w :: [] -> 
-        process (fun lb -> greedy (a2i w) (words lb)) None
-    | "-g" :: w :: path :: []-> 
-        process (fun lb -> greedy (a2i w) (words lb)) (Some path)
-    | "-s" :: w :: [] -> 
-        process (fun lb -> smart (a2i w) (words lb)) None
-    | "-s" :: w :: path :: []-> 
-        process (fun lb -> smart (a2i w) (words lb)) (Some path)
-    | "-d" :: w :: path :: []-> 
-        process (fun lb -> dump (a2i w) (words lb)) (Some path)
-    | "-x" :: w :: path :: []-> 
-        process (fun lb -> ss (a2i w) (lines lb)) (Some path)
-    | _ -> 
-        error "unknown command line format"
-
-<<main>>=
-let () = if !Sys.interactive then () else 
-    try
-        main (Array.to_list Sys.argv); exit 0
-    with
-    | Error(msg)         -> eprintf "error: %s\n" msg; exit 1
-    | Sys_error(msg)     -> eprintf "error: %s\n" msg; exit 1
-@
-
 
 ## Scanner
-
-We employ a scanner to break a text file into words. This might be useful
-in the long run when we want to categorize words into different categories.
-
-<<scanner.mll>>=
-{
-<<prelude>>
-}
-<<rules>>
-{
-let words lexbuf = scan [] lexbuf
-let lines lexbuf = lines [] [] lexbuf
-}
 
 @ The prelude contains definitions that we can use in the semantic action 
 of a rule.
@@ -359,3 +403,35 @@ and lines words ls = parse
   |  [^ ' ' '\n' '\r' '\t']+    { lines (get lexbuf :: words) ls  lexbuf}
   |  '\r'* '\n'                 { lines [] (List.rev words :: ls) lexbuf}
   |  _                          { lines words ls lexbuf }
+@
+
+## Copyright
+
+Copyright (c) 2012, Christian Lindig <lindig@gmail.com>
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or
+without modification, are permitted provided that the following
+conditions are met:
+
+(1) Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+(2) Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in
+    the documentation and/or other materials provided with the
+    distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
