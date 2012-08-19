@@ -21,11 +21,13 @@ type lines  = words list
 val spacewidth: int (* 1 *)
 
 module Simple: sig
-    val break: int -> words -> lines    
+    val break: int -> words -> lines
+    (** [break n words] breaks words into lines of width w *)
 end
 
 module Smart: sig
     val break: int -> words -> lines
+    (** [break n words] breaks words into lines of width w *)
 end
 @
 
