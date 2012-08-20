@@ -3,3 +3,9 @@ frmt.ml
 frmt.native
 scanner.mll
 *.swp
+/demo.ml
+/demo.native
+/format.md
+/linebreak.ml
+/linebreak.mli
+*.html
