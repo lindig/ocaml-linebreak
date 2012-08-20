@@ -59,6 +59,30 @@ taking a line from a file and formatting it for a short line width:
     157|et ea rebum.___|Stet clita kasd|gubergren, no__|sea____________|
     ---+
 
+## Building
+
+The source code is a literate program. You need Lipsum
+(https://github.com/lindig/lipsum.git) to extract the source code. (Lipsum
+is implemented in Objective Caml and should be no problem to build).
+
+With Lipsum installed, just call Make, which in turn relies on OCamlBuild.
+
+    $ make
+
+For use in your own project, you either can use `linebreak.{ml,mli}'
+directly or take `format.lp` and use Lipsum to extract `linebreak.{ml,mli}`
+when you need it.
+
+## Future Work
+
+The `Linebreak` module could be generalized to permit any value to be
+assembled into lines. This would require to turn in into a functor. 
+For now I don't need this.
+
+A more likely addition is to make the last line in a paragraph special in
+that unused space here does not count towards the total cost. I haven't yet
+thought about how to implement this.
+
 ## Copyright
 
 Copyright (c) 2012, Christian Lindig <lindig@gmail.com>
@@ -68,9 +92,10 @@ Redistribution and use in source and binary forms, with or
 without modification, are permitted provided that the following
 conditions are met:
 
-(1) Redistributions of source code must retain the above copyright
+ 1. Redistributions of source code must retain the above copyright
     notice, this list of conditions and the following disclaimer.
-(2) Redistributions in binary form must reproduce the above copyright
+
+ 2. Redistributions in binary form must reproduce the above copyright
     notice, this list of conditions and the following disclaimer in
     the documentation and/or other materials provided with the
     distribution.
