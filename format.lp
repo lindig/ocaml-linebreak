@@ -14,7 +14,16 @@ The cost model assumes that words in a line are separated
 by spaces of width one and that each character in a word is
 likewise of width one.
 
+<<don't modify>>=
+(* This code is extracted from a literate program at 
+   http://github.com/lindig/ocaml-linebreak. Please don't
+   modify this code directly but the literate program instead.
+
+   (c) Christian Lindig 2012 <lindig@gmail.com>
+*)
+
 <<linebreak.mli>>=
+<<don't modify>>
 type words  = string list 
 type lines  = words list
 
@@ -32,6 +41,7 @@ end
 @
 
 <<linebreak.ml>>=
+<<don't modify>>
 <<global definitions>>
 module Simple = struct
     <<Simple>>
@@ -90,7 +100,7 @@ let lines lexbuf = lines [] [] lexbuf
 <<global definitions>>=
 let (@@) f x    = f x
 
-@ The line breaking algorithms break `words` into lines represented as a 
+@ The line breaking algorithm breaks `words` into lines represented as a 
 list of words.
 
 <<global definitions>>=
@@ -187,6 +197,38 @@ The `main` function parses the command line. Exceptions are caught and
 reported one level up.
 
 <<Demo>>=
+let copyright () =
+    List.iter print_endline
+    [ "https://github.com/lindig/ocaml-linebreak"
+    ; "Copyright (c) 2012, Christian Lindig <lindig@gmail.com>"
+    ; "All rights reserved."
+    ; ""
+    ; "Redistribution and use in source and binary forms, with or"
+    ; "without modification, are permitted provided that the following"
+    ; "conditions are met:"
+    ; ""
+    ; "(1) Redistributions of source code must retain the above copyright"
+    ; "    notice, this list of conditions and the following disclaimer."
+    ; "(2) Redistributions in binary form must reproduce the above copyright"
+    ; "    notice, this list of conditions and the following disclaimer in"
+    ; "    the documentation and/or other materials provided with the"
+    ; "    distribution."
+    ; ""
+    ; "THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND"
+    ; "CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES,"
+    ; "INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF"
+    ; "MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE"
+    ; "DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR"
+    ; "CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,"
+    ; "SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT"
+    ; "LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF"
+    ; "USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED"
+    ; "AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT"
+    ; "LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN"
+    ; "ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE"
+    ; "POSSIBILITY OF SUCH DAMAGE."
+    ]
+
 let simple width words = print width @@ Linebreak.Simple.break width words 
 let smart  width words = print width @@ Linebreak.Smart.break width words
 
@@ -209,6 +251,8 @@ let main argv =
         process (fun lb -> smart (a2i w) (Scanner.words lb)) (Some path)
     | "-x" :: w :: path :: []-> 
         process (fun lb -> both (a2i w) (Scanner.lines lb)) (Some path)
+    | "-copyright" :: _ -> copyright ()
+    | "copyright"  :: _ -> copyright ()
     | _ -> 
         let this = List.hd argv in
         List.iter prerr_endline
@@ -216,6 +260,7 @@ let main argv =
         ; this ^ " -g width file.txt        simple line breaking"
         ; this ^ " -s width file.txt        smart line breaking"
         ; this ^ " -x width file.txt        compare simple and smart"
+        ; this ^ " -copyright               show copyright"
         ]
 @
 
@@ -416,9 +461,9 @@ Redistribution and use in source and binary forms, with or
 without modification, are permitted provided that the following
 conditions are met:
 
-(1) Redistributions of source code must retain the above copyright
+1.  Redistributions of source code must retain the above copyright
     notice, this list of conditions and the following disclaimer.
-(2) Redistributions in binary form must reproduce the above copyright
+2.  Redistributions in binary form must reproduce the above copyright
     notice, this list of conditions and the following disclaimer in
     the documentation and/or other materials provided with the
     distribution.
