@@ -37,6 +37,11 @@ end
 module Smart: sig
     val break: int -> words -> lines
     (** [break n words] breaks words into lines of width w *)
+
+    val debug: int -> words -> unit
+    (** [debug n words] dumps the internal representation of 
+    the paragraph to stdout. This can be helpful for debugging
+    or understanding the algorithm. *)
 end
 @
 
@@ -117,7 +122,7 @@ let square (x:int): int = x*x
 @ `finally f x cleanup` function provides resource cleanup in the presence
 of exceptions: `f x` is computed as a result and `cleanup x` is guaranteed
 to run afterwards. (In many cases `cleanup` will not use its argument `x`
-but it can be convenient to access to it.)
+but it can be convenient to have access to it.)
 
 <<Demo>>=
 type 'a result = Success of 'a | Failed of exn
@@ -231,6 +236,7 @@ let copyright () =
 
 let simple width words = print width @@ Linebreak.Simple.break width words 
 let smart  width words = print width @@ Linebreak.Smart.break width words
+let debug width words  = Linebreak.Smart.debug width words
 
 let both width lines =
     List.iter (fun l -> 
@@ -251,6 +257,8 @@ let main argv =
         process (fun lb -> smart (a2i w) (Scanner.words lb)) (Some path)
     | "-x" :: w :: path :: []-> 
         process (fun lb -> both (a2i w) (Scanner.lines lb)) (Some path)
+    | "-d" :: w :: path :: []-> 
+        process (fun lb -> debug (a2i w) (Scanner.words lb)) (Some path)
     | "-copyright" :: _ -> copyright ()
     | "copyright"  :: _ -> copyright ()
     | _ -> 
@@ -260,6 +268,7 @@ let main argv =
         ; this ^ " -g width file.txt        simple line breaking"
         ; this ^ " -s width file.txt        smart line breaking"
         ; this ^ " -x width file.txt        compare simple and smart"
+        ; this ^ " -d width file.txt        emit debug information"
         ; this ^ " -copyright               show copyright"
         ]
 @
@@ -303,7 +312,6 @@ let dump (par:par):unit =
         Printf.printf "%4d %+2d %2d %s\n" cost skip (length word) word
     in
         List.iter break @@ List.rev par
-@
 
 @ `minimal par` provides the best cost for paragraph `par`. 
 (This is mostly needed for the special case where `par` is empty.)
@@ -387,6 +395,7 @@ let break' (linewidth:int) (words:words): par =
 
 <<Smart>>=
 let break linewidth words = doc @@ break' linewidth words
+let debug linewidth words = dump @@ break' linewidth words
 @
 
 ## Simple line breaking
@@ -431,7 +440,7 @@ let (@@) f x    = f x
 let get         = Lexing.lexeme (* matched string *)
 
 
-@ Rule `words` that splits the input into words by capturing
+@ Rule `words`  splits the input into words by capturing
 sequences of non-whitespace charaters. Such words are collected into
 a list.  This list must be reversed before it is returned. 
 
@@ -439,17 +448,17 @@ a list.  This list must be reversed before it is returned.
 rule scan words = parse
      eof                        { List.rev words }
   |  [^ ' ' '\n' '\r' '\t']+    { scan (get lexbuf :: words) lexbuf }
-  |  _                          { scan words lexbuf }     
+  |  _                          { scan words lexbuf }  (* skip *)   
 
 @ Rule `lines` scans a file line by line and splits each line into a list
-of words. The resulting value has type `string list list`.
+of words. The resulting value has type `(string list) list`.
 
 <<rules>>=
 and lines words ls = parse
       eof                       { List.rev (List.rev words :: ls) }
   |  [^ ' ' '\n' '\r' '\t']+    { lines (get lexbuf :: words) ls  lexbuf}
   |  '\r'* '\n'                 { lines [] (List.rev words :: ls) lexbuf}
-  |  _                          { lines words ls lexbuf }
+  |  _                          { lines words ls lexbuf } (* skip *)
 @
 
 ## Copyright
