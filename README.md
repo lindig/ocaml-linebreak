@@ -69,14 +69,14 @@ With Lipsum installed, just call Make, which in turn relies on OCamlBuild.
 
     $ make
 
-For use in your own project, you either can use `linebreak.{ml,mli}'
+For use in your own project, you either can use `linebreak.{ml,mli}`
 directly or take `format.lp` and use Lipsum to extract `linebreak.{ml,mli}`
 when you need it.
 
 ## Future Work
 
 The `Linebreak` module could be generalized to permit any value to be
-assembled into lines. This would require to turn in into a functor. 
+assembled into lines. This would require to turn it into a functor. 
 For now I don't need this.
 
 A more likely addition is to make the last line in a paragraph special in
