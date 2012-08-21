@@ -205,6 +205,7 @@ reported one level up.
 let copyright () =
     List.iter print_endline
     [ "https://github.com/lindig/ocaml-linebreak"
+    ; ""
     ; "Copyright (c) 2012, Christian Lindig <lindig@gmail.com>"
     ; "All rights reserved."
     ; ""

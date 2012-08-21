@@ -73,6 +73,31 @@ For use in your own project, you either can use `linebreak.{ml,mli}`
 directly or take `format.lp` and use Lipsum to extract `linebreak.{ml,mli}`
 when you need it.
 
+## Running
+
+You can run the demo client for some help. A _width_ needs to be a positive
+integer denoting the desired line width in characters.
+
+    ./demo.native 
+    Unknown command line format. Try:
+    ./demo.native -g width file.txt        simple line breaking
+    ./demo.native -s width file.txt        smart line breaking
+    ./demo.native -x width file.txt        compare simple and smart
+    ./demo.native -d width file.txt        emit debug information
+    ./demo.native -copyright               show copyright
+        
+
+## References
+
+Breaking words into lines as it is implemented in TeX is discussed in _The
+TeXbook_ by Donald Knuth in Chapter 14 _How TEX Breaks Paragraphs into
+Lines_. 
+
+The algorithm implemented in `Linebreak` is considerably simpler than the
+TeX algorithm but works on the same principles. In particular, `Linebreak`
+computes the cost between any two adjacent points while the algorithm in
+TeX is optimized for longer lines and checks only likely breakpoints.
+
 ## Future Work
 
 The `Linebreak` module could be generalized to permit any value to be
