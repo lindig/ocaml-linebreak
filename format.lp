@@ -248,51 +248,67 @@ let break_lines linealg = List.iter (fun words ->
         ) (* lines *)
 
 let usage prg msg =
-        List.iter prerr_endline
-        [ msg
-        ; prg ^ "( -copyright | -help | <alg> [options] )"
-        ; ""
-        ; "-copyright       prints the copyright notice"
-        ; "-help            prints this help"
-        ; ""
-        ; "<alg> is one of:"
-        ; " -g width        simple line breaking"
-        ; " -s width        smart line breaking"
-        ; " -x width        compare simple and smart"
-        ; " -d width        emit debug information"
-        ; "<option> is one of:"
-        ; " -f file         read input from file instead of stdin"
-        ; " -atomic         treat whole input as one paragraph instead of each line"
-        ]
+    List.iter prerr_endline
+    [ msg
+    ; prg ^ "( -copyright | -help | <alg> [options] )"
+    ; ""
+    ; "-copyright       prints the copyright notice"
+    ; "-help            prints this help"
+    ; ""
+    ; "<alg> is one of:"
+    ; " -g width        simple line breaking"
+    ; " -s width        smart line breaking"
+    ; " -x width        compare simple and smart"
+    ; " -d width        emit debug information"
+    ; "<option> is one of:"
+    ; " -f file         read input from file instead of stdin"
+    ; " -atomic         treat input as one paragraph instead of each line"
+    ]
 
-let rec main' prg argv (alg', path', one_par) =
+type options =
+    { algorithm:    (Linebreak.words -> unit) option
+    ; input:        string option
+    ; compare:      bool
+    }
+
+let options =
+    { algorithm     = None
+    ; input         = None
+    ; compare       = false
+    }
+
+let some = function
+    | None   -> error "this should not happen"
+    | Some x -> x
+
+let rec main' prg argv options =
     match argv with
-    | [] -> ( match (alg', path', one_par) with
-            | (Some alg, path, one_par) ->
-                if one_par 
-                then process (fun lb -> alg (Scanner.words lb)) path
-                else process (fun lb -> break_lines alg (Scanner.lines lb)) path
-            | _ -> usage prg "Missing parameter: algorithm (x|s|g|d)!" 
-            )
-    | "-copyright" :: _ -> copyright ()
-    | "copyright"  :: _ -> copyright ()
-    | "-help" :: _ -> usage prg "Usage:"
-    | "help"  :: _ -> usage prg "Usage:"
+    | [] when options.algorithm = None -> 
+        error "missing specificaton of an algorithm"
+    | [] when options.compare -> process (fun lb -> 
+        some options.algorithm @@ (Scanner.words lb)) options.input
+    | [] -> process (fun lb -> 
+        break_lines (some options.algorithm) 
+            (Scanner.lines lb)) options.input
+    | "-copyright" :: _     -> copyright ()
+    | "copyright"  :: _     -> copyright ()
+    | "-help" :: _          -> usage prg "Usage:"
+    | "help"  :: _          -> usage prg "Usage:"
     | "-atomic" :: xs -> 
-        main' prg xs (alg', path', true)
+        main' prg xs {options with compare = true } 
     | "-f" :: path :: xs -> 
-        main' prg xs (alg', Some path, one_par)
+        main' prg xs {options with input = Some path }
     | "-g" :: w :: xs -> 
-        main' prg xs (Some (simple (a2i w)), path', one_par)
+        main' prg xs {options with algorithm = Some (simple @@ a2i w)}
     | "-s" :: w :: xs -> 
-        main' prg xs (Some (smart (a2i w)), path', one_par)
+        main' prg xs {options with algorithm = Some (smart @@ a2i w)}
     | "-x" :: w :: xs -> 
-        main' prg xs (Some (both (a2i w)), path', one_par)
+        main' prg xs {options with algorithm = Some (both @@ a2i w)}
     | "-d" :: w :: xs -> 
-        main' prg xs (Some (debug (a2i w)), path', one_par)
+        main' prg xs {options with algorithm = Some (debug @@ a2i w)}
     | _ -> usage prg "Illegal parameter usage!"
 
-let main argv = main' (List.hd argv) (List.tl argv) (None, None, false)
+let main argv = main' (List.hd argv) (List.tl argv) options
 @
 
 ## Smart Line Breaking
