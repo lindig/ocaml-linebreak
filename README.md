@@ -63,7 +63,7 @@ taking a line from a file and formatting it for a short line width:
 
 The source code is a literate program. You need Lipsum
 (https://github.com/lindig/lipsum.git) to extract the source code. (Lipsum
-is implemented in Objective Caml and should be no problem to build).
+is implemented in Objective Caml and should be no problem to build.)
 
 With Lipsum installed, just call Make, which in turn relies on OCamlBuild.
 
@@ -107,6 +107,10 @@ For now I don't need this.
 A more likely addition is to make the last line in a paragraph special in
 that unused space here does not count towards the total cost. I haven't yet
 thought about how to implement this.
+
+## Contributors
+
+1. Kevin Streit <kevin.streit@googlemail.com>
 
 ## Copyright
 
