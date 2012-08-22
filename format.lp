@@ -155,14 +155,14 @@ let process f = function
 let a2i str =
     try 
         let n = int_of_string str in
-            if n >= 0 then n else error "%s must be positive" str
+            if n >= 0 then n else error "%s must be a positive number" str
     with 
         Failure _ -> error "\"%s\" must be positive number" str
 
 <<Demo>>=
 let badness (width:int) (lines:Linebreak.lines): int =
     let sum f = List.fold_left (fun sum x -> sum + f x) 0 in
-    let cost words =
+    let cost (words:string list): int =
         let spaces = max 0 (List.length words - 1) in
         let chars  = sum length words in
         let total  = chars + spaces in
