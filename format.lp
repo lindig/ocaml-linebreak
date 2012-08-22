@@ -235,43 +235,64 @@ let copyright () =
     ; "POSSIBILITY OF SUCH DAMAGE."
     ]
 
-let simple width words = print width @@ Linebreak.Simple.break width words 
+let simple width words = print width @@ Linebreak.Simple.break width words
 let smart  width words = print width @@ Linebreak.Smart.break width words
-let debug width words  = Linebreak.Smart.debug width words
+let debug  width words = Linebreak.Smart.debug width words
+let both width words =
+          print' width @@ Linebreak.Smart.break width words
+        ; print' width @@ Linebreak.Simple.break width words
 
-let both width lines =
-    List.iter (fun l -> 
-        ( print' width @@ Linebreak.Smart.break width l) 
-        ; print' width @@ Linebreak.Simple.break width l
+let break_lines linealg = List.iter (fun words -> 
+        linealg words
         ; Printf.printf "---+\n"
-        ) lines
+        ) (* lines *)
 
-let main argv =
-    match List.tl argv with (* List.hd is program name *)
-    | "-g" :: w :: [] -> 
-        process (fun lb -> simple (a2i w) (Scanner.words lb)) None
-    | "-g" :: w :: path :: []-> 
-        process (fun lb -> simple (a2i w) (Scanner.words lb)) (Some path)
-    | "-s" :: w :: [] -> 
-        process (fun lb -> smart (a2i w) (Scanner.words lb)) None
-    | "-s" :: w :: path :: []-> 
-        process (fun lb -> smart (a2i w) (Scanner.words lb)) (Some path)
-    | "-x" :: w :: path :: []-> 
-        process (fun lb -> both (a2i w) (Scanner.lines lb)) (Some path)
-    | "-d" :: w :: path :: []-> 
-        process (fun lb -> debug (a2i w) (Scanner.words lb)) (Some path)
+let usage prg msg =
+        List.iter prerr_endline
+        [ msg
+        ; prg ^ "( -copyright | -help | <alg> [options] )"
+        ; ""
+        ; "-copyright       prints the copyright notice"
+        ; "-help            prints this help"
+        ; ""
+        ; "<alg> is one of:"
+        ; " -g width        simple line breaking"
+        ; " -s width        smart line breaking"
+        ; " -x width        compare simple and smart"
+        ; " -d width        emit debug information"
+        ; "<option> is one of:"
+        ; " -f file         read input from file instead of stdin"
+        ; " -atomic         treat whole input as one paragraph instead of each line"
+        ]
+
+let rec main' prg argv (alg', path', one_par) =
+    match argv with
+    | [] -> ( match (alg', path', one_par) with
+            | (Some alg, path, one_par) ->
+                if one_par 
+                then process (fun lb -> alg (Scanner.words lb)) path
+                else process (fun lb -> break_lines alg (Scanner.lines lb)) path
+            | _ -> usage prg "Missing parameter: algorithm (x|s|g|d)!" 
+            )
     | "-copyright" :: _ -> copyright ()
     | "copyright"  :: _ -> copyright ()
-    | _ -> 
-        let this = List.hd argv in
-        List.iter prerr_endline
-        [ "Unknown command line format. Try:"
-        ; this ^ " -g width file.txt        simple line breaking"
-        ; this ^ " -s width file.txt        smart line breaking"
-        ; this ^ " -x width file.txt        compare simple and smart"
-        ; this ^ " -d width file.txt        emit debug information"
-        ; this ^ " -copyright               show copyright"
-        ]
+    | "-help" :: _ -> usage prg "Usage:"
+    | "help"  :: _ -> usage prg "Usage:"
+    | "-atomic" :: xs -> 
+        main' prg xs (alg', path', true)
+    | "-f" :: path :: xs -> 
+        main' prg xs (alg', Some path, one_par)
+    | "-g" :: w :: xs -> 
+        main' prg xs (Some (simple (a2i w)), path', one_par)
+    | "-s" :: w :: xs -> 
+        main' prg xs (Some (smart (a2i w)), path', one_par)
+    | "-x" :: w :: xs -> 
+        main' prg xs (Some (both (a2i w)), path', one_par)
+    | "-d" :: w :: xs -> 
+        main' prg xs (Some (debug (a2i w)), path', one_par)
+    | _ -> usage prg "Illegal parameter usage!"
+
+let main argv = main' (List.hd argv) (List.tl argv) (None, None, false)
 @
 
 ## Smart Line Breaking
