@@ -78,14 +78,20 @@ when you need it.
 You can run the demo client for some help. A _width_ needs to be a positive
 integer denoting the desired line width in characters.
 
-    ./demo.native 
-    Unknown command line format. Try:
-    ./demo.native -g width file.txt        simple line breaking
-    ./demo.native -s width file.txt        smart line breaking
-    ./demo.native -x width file.txt        compare simple and smart
-    ./demo.native -d width file.txt        emit debug information
-    ./demo.native -copyright               show copyright
-        
+
+    ./demo.native( -copyright | -help | <alg> [options] )
+
+    -copyright       prints the copyright notice
+    -help            prints this help
+
+    <alg> is one of:
+     -g width        simple line breaking
+     -s width        smart line breaking
+     -x width        compare simple and smart
+     -d width        emit debug information
+    <option> is one of:
+     -f file         read input from file instead of stdin
+     -atomic         treat input as one paragraph instead of each line
 
 ## References
 
