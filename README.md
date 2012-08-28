@@ -104,6 +104,14 @@ TeX algorithm but works on the same principles. In particular, `Linebreak`
 computes the cost between any two adjacent points while the algorithm in
 TeX is optimized for longer lines and checks only likely breakpoints.
 
+Oege de Moor and Jeremy Gibbons from Oxford University discuss in _Briding
+the Algorithm Gap: A Linear-time Functional Program for Paragraph
+Formatting_ the problem and present a linear algorithm for optimal line
+breaking. As an introduction, a classical non-linear algorithm is presented
+as well. The presentation is broken down into very small functions and
+remarkable for that. I am not sure how their naive implementation compares
+with my implementation here.
+
 ## Future Work
 
 The `Linebreak` module could be generalized to permit any value to be
