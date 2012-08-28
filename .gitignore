@@ -9,3 +9,4 @@ scanner.mll
 /linebreak.ml
 /linebreak.mli
 *.html
+/_build
