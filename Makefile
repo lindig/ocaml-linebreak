@@ -11,7 +11,7 @@ OCB 		= ocamlbuild
 
 SRC 		= demo.ml linebreak.ml linebreak.mli scanner.mll
 
-all: 		$(SRC)
+all: 		$(SRC) README.md
 		$(OCB) demo.native
 
 clean: 		
@@ -19,17 +19,14 @@ clean:
 		rm -f $(SRC)
 		rm -f format.md
 
-linebreak.ml: 	format.lp
+%.ml:		format.lp
 		$(LP) tangle -f cpp $@ $< > $@
 
-linebreak.mli: 	format.lp
+%.mli:		format.lp
 		$(LP) tangle -f cpp $@ $< > $@
 
-scanner.mll: 	format.lp
-		$(LP) tangle -f cpp $@ $< > $@
-
-demo.ml:	format.lp
+%.mll:		format.lp
 		$(LP) tangle -f cpp $@ $< > $@
 	    
-format.md: 	format.lp
+README.md: 	format.lp
 		$(LP) weave $< > $@
