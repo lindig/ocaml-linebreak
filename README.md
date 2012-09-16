@@ -215,7 +215,7 @@ likewise of width one.
 ### Main
 
 The main function resides in module `Demo`. It has no interface since it
-is top-level module that executes `main`.
+is the top-level module that executes `main`.
 
     <<demo.ml>>=
     exception Error of string
@@ -226,7 +226,6 @@ is top-level module that executes `main`.
     let (@@) f x        = f x
     let eprintf         = Printf.eprintf
     let printf          = Printf.printf
-    let max x y         = if x > y then x else y 
     
     <<Demo>>
     
@@ -558,7 +557,7 @@ no words to try remain.
     
 `add_word` adds another word to a paragraph `par`. For the initial best
 cost we assume that the word sits on a line by itself, the rest of the line
-is unused and we use the breakpoint preceeding `word`. The cost for this
+is unused and we use the breakpoint preceding `word`. The cost for this
 breakpoint is `minumum par`. From this situation we try to find a better
 solution by adding more (existing) words to the line. Searching for this
 better solution is done by `add'`.
@@ -650,7 +649,7 @@ of a rule.
     
     
 Rule `words`  splits the input into words by capturing
-sequences of non-whitespace charaters. Such words are collected into
+sequences of non-whitespace characters. Such words are collected into
 a list.  This list must be reversed before it is returned. 
 
     <<rules>>=
@@ -670,34 +669,3 @@ of words. The resulting value has type `(string list) list`.
       |  '\r'* '\n'                 { lines [] (List.rev words :: ls) lexbuf}
       |  _                          { lines words ls lexbuf } (* skip *)
     
-
-## Copyright
-
-Copyright (c) 2012, Christian Lindig <lindig@gmail.com>
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or
-without modification, are permitted provided that the following
-conditions are met:
-
-1.  Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
-2.  Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in
-    the documentation and/or other materials provided with the
-    distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
-CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
-AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-POSSIBILITY OF SUCH DAMAGE.
-
