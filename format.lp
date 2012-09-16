@@ -4,7 +4,7 @@
 
 This repository implements a module `Linebreak` that provides
 breaking a list of words in a list of lines, each not exceeding 
-a given width. See file `format.lp` for interface and implementation.
+a given width. 
 
 The `Linebreak` module is accompanied by a small client application `demo`
 for tests and experiments. Module `Linebreak` implements two algorithms,
@@ -161,7 +161,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 ## Overview
 
-We have interface and implementaton of the `Linebreak` module 
+We have interface and implementation of the `Linebreak` module 
 and a command line client. Module `Linebreaking` implements two
 algorithms which stay in separate sub modules.
 
