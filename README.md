@@ -3,12 +3,12 @@
 # An OCaml Module for Optimal Line Breaking 
 
 This repository implements a module `Linebreak` that provides
-breaking a list of words in a list of lines, each not exceeding 
+breaking a list of words into a list of lines, each not exceeding 
 a given width. 
 
 The `Linebreak` module is accompanied by a small client application `demo`
 for tests and experiments. Module `Linebreak` implements two algorithms,
-simple and smart. The simple algorithm implements the naive greedy
+_simple_ and _smart_. The simple algorithm implements the naive greedy
 algorithm of appending a word to a line as long as enough space is
 available. The smart algorithm distributes unused space at the end of lines
 over all lines in a paragraph in an optimal way using a cost model: unused
@@ -17,7 +17,7 @@ number of spaces not used. This cost is summed up over all lines and
 minimized. Hence, the algorithm finds the line breaking that causes the
 smallest cost.
 
-Below are two paragraphs. The left was formatted using the simple
+Below are two paragraphs. The left one was formatted using the simple
 algorithm and the right one the smart algorithm. The cost indicates
 that the smart formatting distributes the unused space more evenly.
 
@@ -129,7 +129,7 @@ thought about how to implement this.
 
 ## Copyright
 
-Copyright (c) 2012, Christian Lindig <lindig@gmail.com>
+Copyright (c) 2012, 2013 Christian Lindig <lindig@gmail.com>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or
@@ -174,7 +174,7 @@ likewise of width one.
        http://github.com/lindig/ocaml-linebreak. Please don't
        modify this code directly but the literate program instead.
     
-       (c) Christian Lindig 2012 <lindig@gmail.com>
+       (c) Christian Lindig 2012, 2013 <lindig@gmail.com>
     *)
     
     
@@ -283,8 +283,7 @@ but it can be convenient to have access to it.)
     <<Demo>>=
     type 'a result = Success of 'a | Failed of exn
     let finally f x cleanup = 
-        let result =
-            try Success (f x) with exn -> Failed exn
+        let result = try Success (f x) with exn -> Failed exn
         in
             cleanup x; 
             match result with
@@ -293,8 +292,8 @@ but it can be convenient to have access to it.)
     
     
 `process f path` opens file `path` or `stdin` when no path is provided
-and creates a lexbuf from it, which is passed to `f`. `process` takes care
-of opening and closing the file such that `f` does not need to do it.
+and creates a `lexbuf` from it, which is passed to `f`. `process` takes
+care of opening and closing the file such that `f` does not need to do it.
 
     <<Demo>>=
     let process f = function
@@ -313,7 +312,9 @@ of opening and closing the file such that `f` does not need to do it.
     let a2i str =
         try 
             let n = int_of_string str in
-                if n >= 0 then n else error "%s must be a positive number" str
+                if n >= 0 
+                then n 
+                else error "\"%s\" must be a positive number" str
         with 
             Failure _ -> error "\"%s\" must be positive number" str
     
@@ -368,7 +369,7 @@ reported one level up.
         List.iter print_endline
         [ "https://github.com/lindig/ocaml-linebreak"
         ; ""
-        ; "Copyright (c) 2012, Christian Lindig <lindig@gmail.com>"
+        ; "Copyright (c) 2012, 2013 Christian Lindig <lindig@gmail.com>"
         ; "All rights reserved."
         ; ""
         ; "Redistribution and use in source and binary forms, with or"
